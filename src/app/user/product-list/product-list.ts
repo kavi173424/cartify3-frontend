@@ -20,6 +20,8 @@ import { Router } from '@angular/router';
         <option value="mobiles">mobiles</option>
       </select>
       <select [(ngModel)]="type" name="type">
+        <!-- keep 'general' default so items without a special type appear -->
+        <option value="general">general</option>
         <option value="men">men</option>
         <option value="women">women</option>
         <option value="western">western</option>
@@ -30,21 +32,31 @@ import { Router } from '@angular/router';
       <button class="secondary">Browse</button>
       <button type="button" (click)="gotoCart()">Cart</button>
     </form>
-    <div class="list">
-      <div class="item" *ngFor="let p of items">
-        <img [src]="p.imageUrl || 'https://via.placeholder.com/400x300?text='+p.name" />
-        <b>{{p.name}}</b>
-        <div class="badge">₹ {{p.price}}</div>
-        <div class="badge">{{p.category}}</div>
-        <div class="badge">{{p.type}}</div>
-        <button (click)="addToCart(p)">Add to Cart</button>
+ 
+    <ng-container *ngIf="items?.length; else empty">
+      <div class="list">
+        <div class="item" *ngFor="let p of items">
+          <img [src]="p.imageUrl || p.__localImage || 'https://via.placeholder.com/400x300?text='+p.name" />
+          <b>{{p.name}}</b>
+          <div class="badge">₹ {{p.price}}</div>
+          <div class="badge">{{p.category}}</div>
+          <div class="badge">{{p.type || 'general'}}</div>
+          <button (click)="addToCart(p)">Add to Cart</button>
+        </div>
       </div>
-    </div>
+    </ng-container>
+    <ng-template #empty>
+      <p style="color:#9ca3af;margin-top:8px">No products found. Try a different type (e.g. "general").</p>
+    </ng-template>
   </div>`
 })
 export class ProductListComponent {
-  category='cloth'; type='men'; items:any[]=[];
-  constructor(private api: ApiService, private router: Router){}
+  category='mobiles'; // start where you need
+  type='general';
+  items:any[]=[];
+  constructor(private api: ApiService, private router: Router){
+    this.browse(); // load on first view
+  }
   browse(){ this.api.browse(this.category, this.type).subscribe(r=> this.items = r); }
   addToCart(p:any){
     const cart = JSON.parse(localStorage.getItem('cart')||'[]');
